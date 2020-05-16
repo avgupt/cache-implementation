@@ -6,12 +6,12 @@ def take_input(var):
     return int(input(var + ": ")) * pow(2,10)    # input in KB
 
 memory_size = take_input("Memory size")
-cache_lines_num = take_input("Number of cache lines")
-block_size =   take_input("Block size")
+cache_lines_num = take_input("Cache size")
+word_size = take_input("Block size")
  
 cache_line_bits = int(math.log(cache_lines_num, 2))
-tag_bits = int(math.log(block_size, 2))
-word_bits = int(math.log(memory_size, 2)) - tag_bits - cache_line_bits
+word_bits = int(math.log(word_size, 2))
+tag_bits = cache_line_bits - word_bits
 
 def decimalToBinary(n):
     ans = ""
