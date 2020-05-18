@@ -42,6 +42,7 @@ def cache_loading(data, cache_bits, cache_memory):
 def replace_word(cache_memory, data):
     """ Uses first in first out"""
     cache_entry = cache_memory.popitem(last=False)
+    print("Replaced " + cache_entry[0] + " at address " + cache_entry[1])
     cache_memory[data] = cache_entry[1]
     return cache_memory
 
