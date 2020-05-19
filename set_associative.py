@@ -94,7 +94,7 @@ def print_cache(cache_memory):
         for tag in cache_memory[set_].keys():
             for offset in cache_memory[set_][tag].keys():
                 print(tag + set_ + offset, cache_memory[set_][tag][offset])
-        print()
+        print('----')
 
 print("Initialising cache ...")
 cache_memory = initialize_cache()
