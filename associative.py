@@ -1,15 +1,25 @@
-# part of word search
-
-import math, sys
+import sys, math
 from collections import OrderedDict
-word_bits = 32
-main_memory = int(input("> Memory size: "))
-cache_size = int(input("> Cache size: "))
 
-size = cache_size
+def take_input(var):
+    return int(input(var + ": "))
 
-memory_bits = int(math.log(main_memory,2))
-cache_bits = int(int(math.log(cache_size,2)))
+main_memory = take_input("Main memory size")
+block_size = take_input("Block size")
+block_num = main_memory // block_size
+
+cache_size = take_input("Cache size")
+line_size = block_size
+if cache_size < line_size: sys.exit("ERROR: Invalid cache size")
+line_num = cache_size // line_size
+
+block_offset = int(math.log(block_size, 2))
+memory_bits = int(math.log(main_memory, 2))
+if block_offset > memory_bits: sys.exit("ERROR: Block size cannot be greater than memory size.")
+block_num_bits = memory_bits - block_offset
+
+tag_bits = block_num_bits
+size = line_num
 
 def decimalToBinary(n):
     ans = ""
@@ -18,55 +28,76 @@ def decimalToBinary(n):
     ans += str(n%2)
     return ans
 
-def initialize_cache(cache_bits, word):
+def initialize_cache():
     cache = OrderedDict()
     return cache
 
-def input_new_block(cache_bits, word, cache_memory):
-    data = input("> Word: ")
-    if len(data) > word: sys.exit("ERROR: Invalid input.")
-    if data in cache_memory.keys():
-        print("Word already exists in memory. Try search.")
-        return cache_memory
-    return cache_loading(data, cache_bits, cache_memory)
+def input_new_block(cache_memory):
+    global memory_bits, tag_bits
+    memory = input("> Memory address: ")
+    if len(memory) != memory_bits: sys.exit("ERROR: Invalid memory address")
+    data = input("> Data: ")
+    tag = memory[:tag_bits]
+    offset = memory[tag_bits:]
+    return cache_loading(cache_memory, data, tag, offset)
 
-def cache_loading(data, cache_bits, cache_memory):
-    global size
-    if (len(cache_memory) < size):
-        memory_in_bin = decimalToBinary(len(cache_memory))
-        memory = memory_in_bin if len(memory_in_bin) == cache_bits else "0" * (cache_bits - len(memory_in_bin)) + memory_in_bin
-        cache_memory[data] = memory
-        return cache_memory
-    return replace_word(cache_memory, data)
-
-def replace_word(cache_memory, data):
-    """ Uses first in first out"""
-    cache_entry = cache_memory.popitem(last=False)
-    print("Replaced " + cache_entry[0] + " at address " + cache_entry[1])
-    cache_memory[data] = cache_entry[1]
+def cache_loading(cache_memory, data, tag, offset):
+    global size, block_offset, block_size
+    if len(cache_memory) >= size and tag not in cache_memory.keys(): return replace_block(cache_memory, data, tag, offset)
+    if tag in cache_memory.keys() and len(cache_memory[tag][offset]) > 0:
+        print("Data " + cache_memory[tag][offset] +" deleted")
+    elif tag not in cache_memory.keys():
+        cache_memory[tag] = {}
+        for i in range(block_size):
+            offset_in_bin = decimalToBinary(i)
+            offset_ = offset_in_bin if len(offset_in_bin) == block_offset else "0" * (block_offset - len(offset_in_bin)) + offset_in_bin
+            cache_memory[tag][offset_] = ''
+    cache_memory[tag][offset] = data
     return cache_memory
 
-def cache_searching(cache_memory, word):
-    if word not in cache_memory.keys(): return "MISS"
-    print("HIT ", end = "")
-    return " ADDRESS: " + cache_memory[word]
+def replace_block(cache_memory, data, tag, offset):
+    """ Uses first in first out"""
+    global block_offset, block_size
+    cache_entry = cache_memory.popitem(last=False)
+    print("Removed tag: " + cache_entry[0])
+    cache_memory[tag] = {}
+    for i in range(block_size):
+        offset_in_bin = decimalToBinary(i)
+        offset_ = offset_in_bin if len(offset_in_bin) == block_offset else "0" * (block_offset - len(offset_in_bin)) + offset_in_bin
+        cache_memory[tag][offset_] = ''
+    cache_memory[tag][offset] = data
+    return cache_memory
 
 def print_cache(cache_memory):
     for word in cache_memory.keys():
         print(word + " " + cache_memory[word])
 
+def cache_searching(cache_memory, address):
+    global tag_bits, memory_bits
+    tag = address[:tag_bits]
+    offset = address[tag_bits:]
+    if len(address) != memory_bits: sys.exit("ERROR: Invalid memory address")
+    if tag not in cache_memory.keys(): return "MISS"
+    print("HIT ", end = "")
+    return " Data: " + cache_memory[tag][offset]
+
+def print_cache(cache_memory):
+    for tag in cache_memory.keys():
+        for offset in cache_memory[tag].keys():
+            print(tag + offset, cache_memory[tag][offset])
+
 print("Initialising cache ...")
-cache_memory = initialize_cache(cache_bits, word_bits)
+cache_memory = initialize_cache()
 print("Initialisation successful!")
 
-print("############### Directive Mapping ###############")
+print("############### Fully Associative Mapping ###############")
 print("\nTo print cache memory, type 'P'.\n To exit, type 'E'.\n")
 while(True):
-    input_task = input("Load(L)/Search(S): ")
-    if input_task == "L": cache_memory = input_new_block(cache_bits, word_bits, cache_memory)
-    elif input_task == "S":
-        word = input("> Word: ")
-        print(cache_searching(cache_memory, word))
+    input_task = input("Read(R)/Write(W): ")
+    if input_task == "W": cache_memory = input_new_block(cache_memory)
+    elif input_task == "R":
+        address = input("> Address: ")
+        print(cache_searching(cache_memory, address))
     elif input_task == "P": print_cache(cache_memory)
     elif input_task == "E": sys.exit("EXIT")
     else: print("Invalid input. Please try again.")
