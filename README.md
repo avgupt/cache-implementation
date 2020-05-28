@@ -1,7 +1,6 @@
 
 Requirements:
     • Python 3.5+
-    • Built-in modules used: sys, math, collections
 
 
 Inputs:
