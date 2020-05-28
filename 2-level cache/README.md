@@ -1,9 +1,8 @@
 
 Requirements:
     • Python 3.5+
-    • Built-in modules used: sys, math, collections, copy
 
-To load cache with a mapping, rum the file with corresponding mapping’s name.
+To load cache with a mapping, run the file with corresponding mapping’s name.
 
 Inputs:
 Main memory size, block size, cache size and set size are taken as inputs (Set size only in set-associative).
