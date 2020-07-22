@@ -50,7 +50,7 @@ Converts a given decimal number into its binary equivalent. It is used to find l
 - Else, prints HIT Data: <data>
     - If the given address does not contain any data, <data> is empty
  
-## print_cache():
+### print_cache():
 - Prints all the addresses and data stored at that instance in the cache.
      - In the case of set-associative mapping, ‘----’ is printed after every set for the convenience of the user.
 
